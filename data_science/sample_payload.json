@@ -1,0 +1,7 @@
+{
+  "p_device_id": "YOUR_DEVICE_UUID_HERE",
+  "p_device_secret": "YOUR_DEVICE_SECRET_HERE",
+  "p_water_level_cm": 250.5,
+  "p_tds_ppm": 120.4,
+  "p_turbidity_ntu": 5.2
+}
