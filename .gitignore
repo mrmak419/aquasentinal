@@ -1,0 +1,25 @@
+# Node / Frontend / AI
+node_modules/
+.env
+.env.local
+.env.*.local
+dist/
+build/
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# PlatformIO / C++ Hardware
+esp32_firmware/.pio/
+esp32_firmware/src/secrets.h
+*.o
+*.elf
+*.bin
+
+# Internal Docs
+internal_docs/
+
+# OS / Editor
+.vscode/
+.DS_Store
