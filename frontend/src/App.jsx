@@ -81,7 +81,7 @@ export default function App() {
 
   // Water Safety Logic (Adjusted for real-world salt/mud thresholds)
   const isTdsSafe = latest.tds_ppm <= 1200;
-  const isTurbiditySafe = latest.turbidity_ntu <= 50;
+  const isTurbiditySafe = latest.turbidity_ntu <= 200;
   const isTotallySafe = isTdsSafe && isTurbiditySafe;
   
   let safetyColor = "bg-green-500";
@@ -92,7 +92,7 @@ export default function App() {
     safetyColor = "bg-red-500";
     safetyLabel = "CONTAMINATED";
     safetyPercent = 15;
-  } else if (latest.tds_ppm > 800 || latest.turbidity_ntu > 20) {
+  } else if (latest.tds_ppm > 800 || latest.turbidity_ntu > 100) {
     safetyColor = "bg-yellow-500";
     safetyLabel = "MARGINAL QUALITY";
     safetyPercent = 50;
@@ -184,7 +184,7 @@ export default function App() {
           <div className="bg-white border border-slate-200 rounded p-6 shadow-sm flex flex-col justify-center">
              <p className="text-xs uppercase tracking-wider text-slate-500 font-bold mb-1">Turbidity</p>
              <p className="text-3xl font-medium text-slate-800">{latest.turbidity_ntu} <span className="text-lg text-slate-500 font-normal">NTU</span></p>
-             <p className="text-xs text-slate-400 mt-1 font-semibold text-red-500">Danger Zone: &gt; 50 NTU</p>
+             <p className="text-xs text-slate-400 mt-1 font-semibold text-red-500">Danger Zone: &gt; 200 NTU</p>
           </div>
         </div>
       </div>
@@ -233,7 +233,7 @@ export default function App() {
               <XAxis dataKey="timeLabel" stroke="#94a3b8" fontSize={10} tickMargin={5} />
               <YAxis stroke="#94a3b8" fontSize={10} />
               <Tooltip contentStyle={{ fontSize: '12px' }} />
-              <ReferenceArea y1={50} fill="#fecaca" fillOpacity={0.3} />
+              <ReferenceArea y1={200} fill="#fecaca" fillOpacity={0.3} />
               <Line type="monotone" dataKey="turbidity_ntu" stroke="#475569" strokeWidth={2} dot={false} isAnimationActive={false} />
             </LineChart>
           </ResponsiveContainer>
