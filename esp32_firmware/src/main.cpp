@@ -2,6 +2,7 @@
 #include <WiFiManager.h> // Magic library for the Captive Portal
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
+#include <LittleFS.h>    // Added for internal flash memory storage
 
 // ==========================================
 // CONFIGURATION
@@ -9,7 +10,7 @@
 
 // Set to 1 to just print sensor data to Serial (No WiFi/Supabase)
 // Set to 0 to enable Captive Portal and Supabase uploads
-#define TEST_MODE 1
+#define TEST_MODE 0
 
 // Supabase Credentials
 // These are securely loaded from secrets.h (which is ignored by Git)
@@ -20,9 +21,10 @@
 #define ECHO_PIN 18
 #define TDS_PIN 32
 #define TURBIDITY_PIN 34
+#define BUILTIN_LED 2 // Built-in blue LED on most ESP32 boards
 
 // Measurement Settings
-const unsigned long UPLOAD_INTERVAL = TEST_MODE ? 2000 : 60000; 
+const unsigned long UPLOAD_INTERVAL = 2000; // Firing every 2 seconds for Exhibition Demo
 unsigned long lastUploadTime = 0;
 
 // TDS Sensor Calibration
@@ -33,6 +35,8 @@ unsigned long lastUploadTime = 0;
 // ==========================================
 
 float readWaterLevel() {
+    digitalWrite(BUILTIN_LED, HIGH); // Turn ON blue LED while pinging
+
     digitalWrite(TRIG_PIN, LOW);
     delayMicroseconds(2);
     digitalWrite(TRIG_PIN, HIGH);
@@ -40,6 +44,9 @@ float readWaterLevel() {
     digitalWrite(TRIG_PIN, LOW);
     
     long duration = pulseIn(ECHO_PIN, HIGH, 30000);
+    
+    digitalWrite(BUILTIN_LED, LOW); // Turn OFF blue LED after reading
+
     if (duration == 0) return 0.0;
     
     return duration * 0.034 / 2.0; 
@@ -94,6 +101,26 @@ void uploadDataToSupabase(float level, float tds, float turbidity) {
     }
 }
 
+// Function to append a new row of data to internal flash memory
+void logDataLocally(float level, float tds, float turbidity) {
+    // We'll use millis() as a basic timestamp for offline logging.
+    // In a real scenario without Wi-Fi, you might want to add an RTC module for real dates.
+    String dataRow = String(millis()) + "," + String(level) + "," + String(tds) + "," + String(turbidity);
+    
+    File file = LittleFS.open("/data.csv", "a");
+    if (!file) {
+        Serial.println("Failed to open file for appending");
+        return;
+    }
+    
+    if (file.println(dataRow)) {
+        Serial.println("Data saved locally to ESP32 memory.");
+    } else {
+        Serial.println("Failed to save data locally.");
+    }
+    file.close();
+}
+
 // ==========================================
 // MAIN SETUP & LOOP
 // ==========================================
@@ -108,6 +135,21 @@ void setup() {
     pinMode(ECHO_PIN, INPUT);
     pinMode(TDS_PIN, INPUT);
     pinMode(TURBIDITY_PIN, INPUT);
+    pinMode(BUILTIN_LED, OUTPUT); // Initialize the blue LED pin
+
+    // Initialize LittleFS for local data logging
+    if (!LittleFS.begin(true)) {
+        Serial.println("LittleFS Mount Failed!");
+    } else {
+        Serial.println("LittleFS Mounted Successfully!");
+        // Create CSV header if the file doesn't exist
+        if (!LittleFS.exists("/data.csv")) {
+            File file = LittleFS.open("/data.csv", "w");
+            file.println("timestamp_ms,water_level_cm,tds_ppm,turbidity_ntu");
+            file.close();
+            Serial.println("Created new data.csv with headers.");
+        }
+    }
     
     if (!TEST_MODE) {
         Serial.println("Starting WiFi Manager...");
@@ -152,6 +194,9 @@ void loop() {
         Serial.printf("TDS: %.2f ppm\n", tds);
         Serial.printf("Turbidity: %.2f NTU\n", turbidity);
         
+        // Log to internal ESP32 memory (acts like an SD card)
+        logDataLocally(waterLevel, tds, turbidity);
+
         if (!TEST_MODE) {
             uploadDataToSupabase(waterLevel, tds, turbidity);
         }
