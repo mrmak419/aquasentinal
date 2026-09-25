@@ -80,7 +80,7 @@ export default function App() {
   if (!latest) return <div className="flex h-screen items-center justify-center bg-slate-50"><p className="text-slate-500 font-semibold uppercase tracking-wider">No telemetry data found.</p></div>;
 
   // Water Safety Logic (Adjusted for real-world salt/mud thresholds)
-  const isTdsSafe = latest.tds_ppm <= 500;
+  const isTdsSafe = latest.tds_ppm <= 1200;
   const isTurbiditySafe = latest.turbidity_ntu <= 50;
   const isTotallySafe = isTdsSafe && isTurbiditySafe;
   
@@ -92,7 +92,7 @@ export default function App() {
     safetyColor = "bg-red-500";
     safetyLabel = "CONTAMINATED";
     safetyPercent = 15;
-  } else if (latest.tds_ppm > 300 || latest.turbidity_ntu > 20) {
+  } else if (latest.tds_ppm > 800 || latest.turbidity_ntu > 20) {
     safetyColor = "bg-yellow-500";
     safetyLabel = "MARGINAL QUALITY";
     safetyPercent = 50;
@@ -168,13 +168,8 @@ export default function App() {
           </div>
         </div>
 
-        {/* Current Stat Cards (Now a 2x2 Grid) */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white border border-slate-200 rounded p-6 shadow-sm flex flex-col justify-center">
-             <p className="text-xs uppercase tracking-wider text-slate-500 font-bold mb-1">Water Volume</p>
-             <p className="text-3xl font-medium text-slate-800">{latest.water_level_cm} <span className="text-lg text-slate-500 font-normal">cm</span></p>
-          </div>
-          
+        {/* Current Stat Cards (Now a 1x3 Grid) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-white border border-slate-200 rounded p-6 shadow-sm flex flex-col justify-center">
              <p className="text-xs uppercase tracking-wider text-slate-500 font-bold mb-1">Time To Empty (Live)</p>
              <p className={`text-3xl font-bold ${forecastColor}`}>{timeUntilEmpty}</p>
@@ -183,7 +178,7 @@ export default function App() {
           <div className="bg-white border border-slate-200 rounded p-6 shadow-sm flex flex-col justify-center">
              <p className="text-xs uppercase tracking-wider text-slate-500 font-bold mb-1">Total Dissolved Solids</p>
              <p className="text-3xl font-medium text-slate-800">{latest.tds_ppm} <span className="text-lg text-slate-500 font-normal">PPM</span></p>
-             <p className="text-xs text-slate-400 mt-1 font-semibold text-red-500">Danger Zone: &gt; 500 PPM</p>
+             <p className="text-xs text-slate-400 mt-1 font-semibold text-red-500">Danger Zone: &gt; 1200 PPM</p>
           </div>
           
           <div className="bg-white border border-slate-200 rounded p-6 shadow-sm flex flex-col justify-center">
@@ -223,7 +218,7 @@ export default function App() {
               <YAxis stroke="#94a3b8" fontSize={10} />
               <Tooltip contentStyle={{ fontSize: '12px' }} />
               {/* Omit y2 so the danger zone extends infinitely upwards to the top of the graph! */}
-              <ReferenceArea y1={500} fill="#fecaca" fillOpacity={0.3} />
+              <ReferenceArea y1={1200} fill="#fecaca" fillOpacity={0.3} />
               <Line type="monotone" dataKey="tds_ppm" stroke="#64748b" strokeWidth={2} dot={false} isAnimationActive={false} />
             </LineChart>
           </ResponsiveContainer>
